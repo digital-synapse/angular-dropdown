@@ -6,11 +6,20 @@
     <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.3.2/angular.min.js"></script>
     <script src="angular-dropdown.js"></script>
     <script src="app.js"></script>
+    <script src="mocks.js"></script>
 </head>
-<body ng-controller='ctrl'>
-    <dropdown model="option1"></dropdown>
-    <dropdown model="option2"></dropdown>
+    <body ng-controller='ctrl'>
+        
+        <h3>dropdown service example:</h3>
+        <div>
+            <!-- special binding (created in controller with dropdown.binding.add) -->
+            <dropdown model="form.firstAnimalId"></dropdown>
+            <dropdown model="form.secondAnimalId"></dropdown>
     
-    <button ng-click="submit()">Submit</button>
-</body>
+            <!-- normal binding with ng-model -->
+            <input type="checkbox" ng-model="form.checked" /> Checked
+        </div>
+        <br/>
+        <button ng-click="submit()">Submit</button>
+    </body>
 </html>

@@ -6,14 +6,17 @@
         link: function (scope, element, attrs) {
 
             // assumes scope.item is defined
-            var listname = scope.dropdown.binding[attrs.model];
+            var modelName;
+            if (scope.dropdown.model[attrs.model]) modelName = attrs.model;
+            else modelName = scope.dropdown.prop[attrs.model];
+            var listname = scope.dropdown.binding[modelName];
             if (!listname) throw 'unable to bind to list!';
             var labelname = scope.dropdown.label[listname];
 
             element.html(
-                '<select ng-model="dropdown.model.' + attrs.model +
-                '" ng-options="' + attrs.model +
-                '.' + labelname + ' for ' + attrs.model +
+                '<select ng-model="dropdown.model.' + modelName +
+                '" ng-options="' + modelName +
+                '.' + labelname + ' for ' + modelName +
                 ' in dropdown.list.' + listname +
                 '"/>').show();
             $compile(element.contents())(scope);
@@ -23,9 +26,14 @@
 
 .factory('dropdown', function ($rootScope) {
     var service = {
+        init: function (scope) {
+            scope.dropdown = service;
+            service.scope = scope;
+        },
         model: {},
         key: {},
         label: {},
+        prop: {},
         list: {
             add: function (name, array) {
                 service.list[name] = array;
@@ -33,14 +41,30 @@
             }
         },
         binding: {
-            add: function (parent, prop, name, listname, keyname, labelname) {
-                if (!parent) parent = {};
+            count: 0,
+            add: function (
+                binding,    /* <string> required: ng-model for the selected id or key */
+                listname,   /* <string> required: name of the array of options added with dropdown.list.add() */
+                keyname,    /* <string> optional: name of the key field in the options array */
+                labelname,  /* <string> optional: name of the label field in the options array */
+                name        /* <string> optional: name for the intermediate object used by the dropdown service internally */
+            ) {
+                service.binding.count++;
+
+                var tokens = binding.split('.');
+                var parent = tokens[0];
+                var prop = tokens[1];
+                if (!parent) parent = service.scope;
+                else parent = service.scope[parent];
+                name = name || 'option' + service.binding.count;
                 listname = listname || name + 's';
                 service.key[name] = keyname || 'id';
                 service.label[listname] = labelname || 'name';
                 service.model[name] = {};
                 service.binding[name] = listname;
                 service.binding[listname] = name;
+                service.prop[binding] = name;
+                service.prop[name] = binding;
                 var key = service.key[name] || service.key[service.binding[name]];
                 $rootScope.$watch(function () {
                     return service.model[name];
